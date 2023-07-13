@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+    tools {
+        maven "maven 3.8.6"
+    }
+    stages {
+        stage('1: Cloning Code') {
+            steps {
+                echo 'Cloning the latest application'
+                git credentialsId: 'GitHub credentials', url: 'https://github.com/aduabgy/maven-web-application'
+            }
+        }
+        stage('2: Test + Build') {
+            steps {
+                echo 'Running JUnit test cases'
+                echo 'Testing must pass to create artifacts'
+                sh 'mvn clean package'
+            }
+        }
+        stage('3: Code Analysis') {
+            steps {
+                echo 'Performing code quality analysis'
+                sh 'mvn sonar:sonar'
+            }
+        }
+        stage('4: Deploying to Nexus') {
+            steps {
+                echo 'Deploying to Nexus'
+                sh 'mvn deploy'
+            }
+        }
+    }
+    
+    post {
+        always {
+            emailext body: 'Thanks Yaw', recipientProviders: [requestor()], subject: 'Success', to: 'aduabgy@yahoo.com'
+        }
+    }
+}
